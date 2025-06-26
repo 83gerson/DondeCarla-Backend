@@ -2,41 +2,39 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { connectToDatabase } = require('./Database/config');
-const contactRouter = require('./routes/contact.route');
+const apiRouter = require('./api.route'); // ✅ Importamos el router general
 
 const app = express();
 const PORT = process.env.PORT || 5173;
 
-// Middleware para parsear JSON 
+// Middleware para parsear JSON
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
-// Configuración de CORS 
+// Configuración de CORS
 const corsOptions = {
-  origin: 'https://landing-page-frontend-efze.onrender.com',
+  origin: 'https://landing-page-frontend-efze.onrender.com', // <-- o '*' si querés permitir todo (solo en desarrollo)
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  optionsSuccessStatus: 200, // <- muy importante para Render
+  optionsSuccessStatus: 200,
   credentials: false
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions)); // <- Esto maneja preflight requests
-
+app.options('*', cors(corsOptions)); // Manejo de preflight
 
 // Función para inicializar la aplicación
 const initializeApp = async () => {
   try {
-    // Conectar a la base de datos usando la función
     await connectToDatabase();
-    
-    // Configurar rutas
-    app.use('/api/contact', contactRouter);
-    
+
+    // ✅ Usar rutas centralizadas
+    app.use('/api', apiRouter);
+
     // Ruta de prueba
     app.get('/api/health', (req, res) => {
-      res.json({ 
-        status: 'OK', 
+      res.json({
+        status: 'OK',
         message: 'Servidor de contacto funcionando',
         timestamp: new Date().toISOString()
       });
@@ -50,11 +48,10 @@ const initializeApp = async () => {
       });
     });
 
-    // Manejo de errores mejorado
+    // Manejo de errores
     app.use((err, req, res, next) => {
       console.error('Error capturado:', err);
-      
-      // Error de validación de Mongoose
+
       if (err.name === 'ValidationError') {
         return res.status(400).json({
           success: false,
@@ -62,16 +59,14 @@ const initializeApp = async () => {
           errors: Object.values(err.errors).map(e => e.message)
         });
       }
-      
-      // Error de conexión a BD
+
       if (err.name === 'MongoNetworkError') {
         return res.status(503).json({
           success: false,
           message: 'Error de conexión a la base de datos'
         });
       }
-      
-      // Error general
+
       res.status(500).json({
         success: false,
         message: 'Error interno del servidor',
@@ -79,20 +74,19 @@ const initializeApp = async () => {
       });
     });
 
-    // Iniciar servidor
+    // Iniciar el servidor
     app.listen(PORT, () => {
       console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
       console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
       console.log(`📬 Contact API: http://localhost:${PORT}/api/contact`);
     });
-
   } catch (error) {
     console.error('❌ Error al inicializar la aplicación:', error);
     process.exit(1);
   }
 };
 
-// Manejar errores no capturados
+// Captura de errores globales
 process.on('unhandledRejection', (reason, promise) => {
   console.error('Unhandled Rejection at:', promise, 'reason:', reason);
   process.exit(1);
