@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { connectToDatabase } = require('./Database/config');
-const apiRouter = require('./api.route'); // ✅ Importamos el router general
+const apiRouter = require('./api.router'); // ✅ Importamos el router general
 
 const app = express();
 const PORT = process.env.PORT || 5173;
