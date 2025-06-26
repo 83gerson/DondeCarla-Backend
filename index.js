@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Configuración de CORS
 const corsOptions = {
-  origin: 'https://landing-page-frontend-efze.onrender.com', // <-- o '*' si querés permitir todo (solo en desarrollo)
+  origin: '*', // <-- o '*' si querés permitir todo (solo en desarrollo)
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   optionsSuccessStatus: 200,
